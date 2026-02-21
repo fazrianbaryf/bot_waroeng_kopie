@@ -45,15 +45,20 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    content_words = message.content.lower().split()
+    content = message.content.lower()
+    content_words = content.split()
     
     # Cek apakah dia ngetag (mention) orang lain yang bukan bot dan bukan dirinya sendiri
     mentions_friend = any(not user.bot and user.id != message.author.id for user in message.mentions)
     
-    if any(word in content_words for word in KEYWORDS) or mentions_friend:
+    # apakah ada kata kunci dalam pesan?
+    contains_keyword = any(word in KEYWORDS for word in content_words)
+    # apakah ada kata selain keyword (agar kita tidak spam jika hanya keyword saja)
+    non_keyword_words = any(word not in KEYWORDS for word in content_words)
+    
+    if contains_keyword or mentions_friend:
         database.add_points(message.author.id, 2)
         await message.add_reaction("☕")
-        await message.channel.send(f"☕ Mantap bujang {message.author.mention}! Semangat ngajak main kawan lu. Nih bonus **2 Biji Kopie** buat lu anjing, login gih! 👽")
         await check_role(message.author)
 
     await bot.process_commands(message)
